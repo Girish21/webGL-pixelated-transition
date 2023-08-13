@@ -133,3 +133,7 @@ body,
 #app {
   height: 100%;
 }
+
+#app {
+  touch-action: none;
+}

@@ -23,12 +23,14 @@ class Sketch {
   private geometry: THREE.PlaneGeometry | null
   private material: THREE.ShaderMaterial | null
   private mesh: THREE.Mesh | null
+  private loadingManager: THREE.LoadingManager
   private loader: THREE.TextureLoader
   private dataTexture: THREE.DataTexture | null
   private textures: THREE.Texture[] = []
   private activeTexture = 0
   private animationDirection: -1 | 1 = -1
   private animationRunning = false
+  private animationFrame: number | null = null
 
   private gui: GUI
 
@@ -63,7 +65,8 @@ class Sketch {
     this.renderer.setClearColor(0xffffff, 1)
     this.domElement.append(this.renderer.domElement)
 
-    this.loader = new THREE.TextureLoader()
+    this.loadingManager = new THREE.LoadingManager()
+    this.loader = new THREE.TextureLoader(this.loadingManager)
 
     this.dataTexture = null
     this.geometry = null
@@ -79,7 +82,9 @@ class Sketch {
     this.addGesture()
     this.addEventListener()
     this.resize()
-    this.render()
+    this.loadingManager.onLoad = () => {
+      this.render()
+    }
   }
 
   loadTextures() {
@@ -151,6 +156,8 @@ class Sketch {
   }
 
   animate() {
+    this.animationRunning = true
+    this.render()
     gsap.to(this.config, {
       progress: 1,
       duration: 1.5,
@@ -164,6 +171,7 @@ class Sketch {
           (next + -this.animationDirection) % this.textures.length,
         )
 
+        window.cancelAnimationFrame(this.animationFrame!)
         this.animationRunning = false
         this.config.progress = 0
 
@@ -185,6 +193,8 @@ class Sketch {
 
     this.renderer.setSize(this.windowSize.x, this.windowSize.y)
     this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio))
+
+    this.render()
   }
 
   addEventListener() {
@@ -237,7 +247,9 @@ class Sketch {
 
     this.renderer.render(this.scene, this.camera)
 
-    window.requestAnimationFrame(this.render.bind(this))
+    if (this.animationRunning) {
+      this.animationFrame = window.requestAnimationFrame(this.render.bind(this))
+    }
   }
 }
 

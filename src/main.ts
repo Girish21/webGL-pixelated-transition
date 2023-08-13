@@ -18,6 +18,7 @@ class Sketch {
   private windowSize: THREE.Vector2
   private scene: THREE.Scene
   private camera: THREE.PerspectiveCamera
+  private cameraZPosition = 800
   private clock: THREE.Clock
   private renderer: THREE.WebGLRenderer
   private geometry: THREE.PlaneGeometry | null
@@ -51,12 +52,12 @@ class Sketch {
 
     this.scene = new THREE.Scene()
     this.camera = new THREE.PerspectiveCamera(
-      75,
+      this.cameraFOV(),
       this.windowSize.x / this.windowSize.y,
       0.1,
-      100,
+      1000,
     )
-    this.camera.position.z = 1
+    this.camera.position.z = this.cameraZPosition
     this.scene.add(this.camera)
 
     this.clock = new THREE.Clock()
@@ -85,6 +86,15 @@ class Sketch {
     this.loadingManager.onLoad = () => {
       this.render()
     }
+  }
+
+  cameraFOV() {
+    return (
+      2 *
+      THREE.MathUtils.radToDeg(
+        Math.atan(this.windowSize.y / 2 / this.cameraZPosition),
+      )
+    )
   }
 
   loadTextures() {
@@ -122,7 +132,7 @@ class Sketch {
   }
 
   addObject() {
-    this.geometry = new THREE.PlaneGeometry(1, 1.5, 32, 32)
+    this.geometry = new THREE.PlaneGeometry(600, 900, 32, 32)
     this.material = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
@@ -188,6 +198,7 @@ class Sketch {
       this.domElement.offsetHeight,
     )
 
+    this.camera.fov = this.cameraFOV()
     this.camera.aspect = this.windowSize.x / this.windowSize.y
     this.camera.updateProjectionMatrix()
 

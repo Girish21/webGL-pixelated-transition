@@ -149,6 +149,7 @@ class Sketch {
       uniforms: {
         uTime: { value: 0 },
         animate: { value: 0 },
+        uResolution: { value: new THREE.Vector4() },
         uTexture1: { value: null },
         uTexture2: { value: this.textures[this.activeTexture] },
         uDataTexture: { value: this.dataTexture },
@@ -169,11 +170,28 @@ class Sketch {
 
   scaleAndPosition() {
     const boundingBox = this.image.getBoundingClientRect()
+    const imageAspect = 2880 / 1920
+
+    let side1, side2
+
+    if (boundingBox.height / boundingBox.width > imageAspect) {
+      side1 = (boundingBox.width / boundingBox.height) * imageAspect
+      side2 = 1
+    } else {
+      side1 = 1
+      side2 = boundingBox.height / boundingBox.width / imageAspect
+    }
+
     this.mesh!.scale.set(boundingBox.width, boundingBox.height, 1)
     this.mesh!.position.x =
       boundingBox.left - this.windowSize.x / 2 + boundingBox.width / 2
     this.mesh!.position.y =
       this.windowSize.y / 2 - boundingBox.top - boundingBox.height / 2
+
+    this.material!.uniforms.uResolution.value.x = boundingBox.width
+    this.material!.uniforms.uResolution.value.y = boundingBox.height
+    this.material!.uniforms.uResolution.value.z = side1
+    this.material!.uniforms.uResolution.value.w = side2
   }
 
   addGUI() {
@@ -200,7 +218,7 @@ class Sketch {
     tl.to(title.querySelectorAll('span'), {
       y: 0,
       stagger: 0.02,
-      duration: 3,
+      duration: 2,
       ease: 'elastic.out(1.2, 1)',
     }).to(
       this.config,
@@ -248,23 +266,19 @@ class Sketch {
       .set(currentText, { hidden: true }, '>')
       .set(nextText, { hidden: false }, '>')
       .set(nextText.querySelectorAll('span'), { y: '100%' }, '>')
-      .to(
-        nextText.querySelectorAll('span'),
-        {
-          y: 0,
-          stagger: 0.02,
-          duration: 0.7,
-          ease: 'elastic.out(1.2, 1)',
-        },
-        '>',
-      )
+      .to(nextText.querySelectorAll('span'), {
+        y: 0,
+        stagger: 0.02,
+        duration: 0.7,
+        ease: 'elastic.out(1.2, 1)',
+      })
       .to(
         'html',
         {
           '--background': this.bgColors[next],
           '--font-color': this.fontColors[next],
           ease: 'expo.inOut',
-          delay: 0.2,
+          delay: 0.1,
           duration: 1.5,
         },
         '<',

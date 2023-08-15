@@ -106,6 +106,10 @@ class Sketch {
   loadTextures() {
     this.textures.push(this.loader.load(img1))
     this.textures.push(this.loader.load(img2))
+
+    if (this.pageTitles.length != this.textures.length) {
+      throw new Error('Number of page titles and images must be equal')
+    }
   }
 
   fillDataTexture() {
@@ -217,7 +221,7 @@ class Sketch {
             this.config.revealAnimation
         },
       },
-      0,
+      '<',
     )
   }
 
@@ -230,20 +234,42 @@ class Sketch {
     const nextNext = Math.abs(
       (next + -this.animationDirection) % this.textures.length,
     )
-    gsap.to(this.config, {
-      progress: 1,
-      duration: 1.5,
-      ease: 'expo.inOut',
-      onComplete: () => {
-        window.cancelAnimationFrame(this.animationFrame!)
-        this.animationRunning = false
-        this.config.progress = 0
+    const currentText = this.pageTitles[this.activeTexture] as HTMLElement
+    const nextText = this.pageTitles[next] as HTMLElement
+    const tl = gsap.timeline()
 
-        this.material!.uniforms.uTexture1.value = this.textures[next]
-        this.material!.uniforms.uTexture2.value = this.textures[nextNext]
-        this.activeTexture = next
-      },
+    tl.to(currentText.querySelectorAll('span'), {
+      y: '100%',
+      duration: 0.5,
+      ease: 'power1.out',
     })
+      .set(currentText, { hidden: true }, '>')
+      .set(nextText, { hidden: false }, '>')
+      .set(nextText.querySelectorAll('span'), { y: '100%' }, '>')
+      .to(nextText.querySelectorAll('span'), {
+        y: 0,
+        stagger: 0.02,
+        duration: 0.7,
+        ease: 'elastic.out(1.2, 1)',
+      })
+      .to(
+        this.config,
+        {
+          progress: 1,
+          duration: 1.5,
+          ease: 'expo.inOut',
+          onComplete: () => {
+            window.cancelAnimationFrame(this.animationFrame!)
+            this.animationRunning = false
+            this.config.progress = 0
+
+            this.material!.uniforms.uTexture1.value = this.textures[next]
+            this.material!.uniforms.uTexture2.value = this.textures[nextNext]
+            this.activeTexture = next
+          },
+        },
+        '<',
+      )
   }
 
   resize() {

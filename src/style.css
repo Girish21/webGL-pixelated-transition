@@ -177,6 +177,11 @@ body,
   white-space: nowrap;
 }
 
+.page-title > div {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .page-title span {
   display: inline-block;
   transform: translateY(100%);

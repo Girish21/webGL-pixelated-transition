@@ -1,3 +1,8 @@
+:root {
+  --background: #d8b4fe;
+  --font-color: #fff;
+}
+
 /* http://meyerweb.com/eric/tools/css/reset/
    v2.0 | 20110126
    License: none (public domain)
@@ -126,6 +131,11 @@ q:after {
 table {
   border-collapse: collapse;
   border-spacing: 0;
+}
+
+html {
+  background-color: var(--background);
+  color: var(--font-color);
 }
 
 html,

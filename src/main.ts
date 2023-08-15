@@ -29,6 +29,8 @@ class Sketch {
   private loader: THREE.TextureLoader
   private dataTexture: THREE.DataTexture | null
   private textures: THREE.Texture[] = []
+  private bgColors: string[] = ['#d8b4fe', '#fde68a']
+  private fontColors: string[] = ['#ffffff', '#000000']
   private activeTexture = 0
   private animationDirection: -1 | 1 = -1
   private animationRunning = false
@@ -68,7 +70,7 @@ class Sketch {
     this.clock = new THREE.Clock()
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true })
-    this.renderer.setClearColor(0xffffff, 1)
+    this.renderer.setClearColor(0xffffff, 0)
     this.domElement.append(this.renderer.domElement)
 
     this.loadingManager = new THREE.LoadingManager()
@@ -246,12 +248,27 @@ class Sketch {
       .set(currentText, { hidden: true }, '>')
       .set(nextText, { hidden: false }, '>')
       .set(nextText.querySelectorAll('span'), { y: '100%' }, '>')
-      .to(nextText.querySelectorAll('span'), {
-        y: 0,
-        stagger: 0.02,
-        duration: 0.7,
-        ease: 'elastic.out(1.2, 1)',
-      })
+      .to(
+        nextText.querySelectorAll('span'),
+        {
+          y: 0,
+          stagger: 0.02,
+          duration: 0.7,
+          ease: 'elastic.out(1.2, 1)',
+        },
+        '>',
+      )
+      .to(
+        'html',
+        {
+          '--background': this.bgColors[next],
+          '--font-color': this.fontColors[next],
+          ease: 'expo.inOut',
+          delay: 0.2,
+          duration: 1.5,
+        },
+        '<',
+      )
       .to(
         this.config,
         {

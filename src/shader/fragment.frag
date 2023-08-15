@@ -3,6 +3,7 @@ varying vec2 vUv;
 
 uniform float uTime;
 uniform float uProgress;
+uniform float uRevealProgress;
 uniform float uDirection;
 uniform sampler2D uTexture1;
 uniform sampler2D uTexture2;

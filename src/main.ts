@@ -15,6 +15,7 @@ const lethargy = new Lethargy()
 
 class Sketch {
   private domElement: HTMLElement
+  private image: HTMLImageElement
   private windowSize: THREE.Vector2
   private scene: THREE.Scene
   private camera: THREE.PerspectiveCamera
@@ -32,11 +33,13 @@ class Sketch {
   private animationDirection: -1 | 1 = -1
   private animationRunning = false
   private animationFrame: number | null = null
+  private pageTitles: NodeList
 
   private gui: GUI
 
   private config = {
     progress: 0,
+    revealProgress: 0,
     animate: () => {
       this.animate()
     },
@@ -44,6 +47,8 @@ class Sketch {
 
   constructor(el: HTMLElement) {
     this.domElement = el
+    this.image = document.getElementById('img-container') as HTMLImageElement
+    this.pageTitles = document.querySelectorAll('.page-title')
 
     this.windowSize = new THREE.Vector2(
       this.domElement.offsetWidth,
@@ -85,6 +90,7 @@ class Sketch {
     this.resize()
     this.loadingManager.onLoad = () => {
       this.render()
+      this.revealAnimation()
     }
   }
 
@@ -132,16 +138,17 @@ class Sketch {
   }
 
   addObject() {
-    this.geometry = new THREE.PlaneGeometry(600, 900, 32, 32)
+    this.geometry = new THREE.PlaneGeometry(1, 1, 32, 32)
     this.material = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
         animate: { value: 0 },
-        uTexture1: { value: this.textures[this.activeTexture] },
-        uTexture2: { value: this.textures[this.activeTexture + 1] },
+        uTexture1: { value: null },
+        uTexture2: { value: this.textures[this.activeTexture] },
         uDataTexture: { value: this.dataTexture },
         uProgress: { value: 0 },
-        uDirection: { value: -1 },
+        uRevealProgress: { value: 0 },
+        uDirection: { value: 1 },
       },
       fragmentShader,
       vertexShader,
@@ -149,7 +156,18 @@ class Sketch {
     })
     this.mesh = new THREE.Mesh(this.geometry, this.material)
 
+    this.scaleAndPosition()
+
     this.scene.add(this.mesh)
+  }
+
+  scaleAndPosition() {
+    const boundingBox = this.image.getBoundingClientRect()
+    this.mesh!.scale.set(boundingBox.width, boundingBox.height, 1)
+    this.mesh!.position.x =
+      boundingBox.left - this.windowSize.x / 2 + boundingBox.width / 2
+    this.mesh!.position.y =
+      this.windowSize.y / 2 - boundingBox.top - boundingBox.height / 2
   }
 
   addGUI() {
@@ -165,22 +183,55 @@ class Sketch {
     this.gui.add(this.config, 'animate').name('Animate')
   }
 
+  revealAnimation() {
+    const title = this.pageTitles[0] as HTMLElement
+    title.hidden = false
+
+    this.animationRunning = true
+    this.render()
+
+    const tl = gsap.timeline()
+    tl.to(title.querySelectorAll('span'), {
+      y: 0,
+      stagger: 0.02,
+      duration: 3,
+      ease: 'elastic.out(1.2, 1)',
+    }).to(
+      this.config,
+      {
+        progress: 1,
+        delay: 0.2,
+        duration: 2,
+        ease: 'expo.inOut',
+        onComplete: () => {
+          window.cancelAnimationFrame(this.animationFrame!)
+          this.animationRunning = false
+          this.config.progress = 0
+
+          this.material!.uniforms.uTexture1.value =
+            this.textures[this.activeTexture]
+          this.material!.uniforms.uTexture2.value =
+            this.textures[this.activeTexture + 1]
+        },
+      },
+      0,
+    )
+  }
+
   animate() {
     this.animationRunning = true
     this.render()
+    const next = Math.abs(
+      (this.activeTexture + -this.animationDirection) % this.textures.length,
+    )
+    const nextNext = Math.abs(
+      (next + -this.animationDirection) % this.textures.length,
+    )
     gsap.to(this.config, {
       progress: 1,
       duration: 1.5,
-      ease: 'Expo.easeInOut',
+      ease: 'expo.inOut',
       onComplete: () => {
-        const next = Math.abs(
-          (this.activeTexture + -this.animationDirection) %
-            this.textures.length,
-        )
-        const nextNext = Math.abs(
-          (next + -this.animationDirection) % this.textures.length,
-        )
-
         window.cancelAnimationFrame(this.animationFrame!)
         this.animationRunning = false
         this.config.progress = 0
@@ -198,6 +249,8 @@ class Sketch {
       this.domElement.offsetHeight,
     )
 
+    this.scaleAndPosition()
+
     this.camera.fov = this.cameraFOV()
     this.camera.aspect = this.windowSize.x / this.windowSize.y
     this.camera.updateProjectionMatrix()
@@ -214,7 +267,7 @@ class Sketch {
 
   addGesture() {
     new Gesture(
-      this.domElement,
+      window,
       {
         onDrag: ({ intentional, direction: [x], dragging }) => {
           if (intentional && !this.animationRunning && dragging) {
@@ -253,6 +306,7 @@ class Sketch {
 
     if (this.material) {
       this.material.uniforms.uTime.value = elapsedTime
+      this.material.uniforms.uRevealProgress.value = this.config.revealProgress
       this.material.uniforms.uProgress.value = this.config.progress
     }
 

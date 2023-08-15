@@ -135,5 +135,65 @@ body,
 }
 
 #app {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   touch-action: none;
+}
+
+.container {
+  height: 100%;
+}
+
+.row {
+  display: flex;
+  flex-direction: column-reverse;
+  height: 100%;
+}
+
+.row > div:nth-child(1) {
+  flex: 2;
+}
+
+.row > div:nth-child(2) {
+  flex: 1;
+  width: 30vh;
+  align-self: center;
+}
+
+.text-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.page-title {
+  font-size: 4rem;
+  font-weight: 700;
+  align-self: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.page-title span {
+  display: inline-block;
+  transform: translateY(100%);
+}
+
+@media (min-width: 768px) {
+  .row {
+    flex-direction: row;
+  }
+
+  .row > div:nth-child(1) {
+    flex: 2;
+  }
+
+  .row > div:nth-child(2) {
+    flex: 1;
+    width: auto;
+    align-self: auto;
+  }
 }

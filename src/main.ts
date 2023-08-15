@@ -39,7 +39,7 @@ class Sketch {
 
   private config = {
     progress: 0,
-    revealProgress: 0,
+    revealAnimation: true,
     animate: () => {
       this.animate()
     },
@@ -147,7 +147,7 @@ class Sketch {
         uTexture2: { value: this.textures[this.activeTexture] },
         uDataTexture: { value: this.dataTexture },
         uProgress: { value: 0 },
-        uRevealProgress: { value: 0 },
+        uRevealAnimation: { value: this.config.revealAnimation },
         uDirection: { value: 1 },
       },
       fragmentShader,
@@ -206,12 +206,15 @@ class Sketch {
         onComplete: () => {
           window.cancelAnimationFrame(this.animationFrame!)
           this.animationRunning = false
+          this.config.revealAnimation = false
           this.config.progress = 0
 
           this.material!.uniforms.uTexture1.value =
             this.textures[this.activeTexture]
           this.material!.uniforms.uTexture2.value =
             this.textures[this.activeTexture + 1]
+          this.material!.uniforms.uRevealAnimation.value =
+            this.config.revealAnimation
         },
       },
       0,
@@ -306,7 +309,6 @@ class Sketch {
 
     if (this.material) {
       this.material.uniforms.uTime.value = elapsedTime
-      this.material.uniforms.uRevealProgress.value = this.config.revealProgress
       this.material.uniforms.uProgress.value = this.config.progress
     }
 

@@ -3,7 +3,7 @@ varying vec2 vUv;
 
 uniform float uTime;
 uniform float uProgress;
-uniform float uRevealProgress;
+uniform bool uRevealAnimation;
 uniform float uDirection;
 uniform sampler2D uTexture1;
 uniform sampler2D uTexture2;
@@ -17,6 +17,10 @@ void main() {
 
   vec4 color1 = texture2D(uTexture1, vUv + uDirection * fastOut);
   vec4 color2 = texture2D(uTexture2, vUv + -uDirection * slowIn);
+
+  if (uRevealAnimation) {
+    color1.a = 0.;
+  }
 
   gl_FragColor = mix(color1, color2, uProgress);
 }

@@ -172,18 +172,16 @@ body,
 .page-title {
   font-size: 4rem;
   font-weight: 700;
-  align-self: center;
-  overflow: hidden;
-  white-space: nowrap;
 }
 
 .page-title > div {
   overflow: hidden;
-  white-space: nowrap;
+  display: flex;
+  white-space: pre;
 }
 
 .page-title span {
-  display: inline-block;
+  display: block;
   transform: translateY(100%);
 }
 

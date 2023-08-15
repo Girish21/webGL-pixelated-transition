@@ -37,7 +37,7 @@ class Sketch {
   private animationFrame: number | null = null
   private pageTitles: NodeList
 
-  private gui: GUI
+  private gui: GUI | null = null
 
   private config = {
     progress: 0,
@@ -81,12 +81,12 @@ class Sketch {
     this.material = null
     this.mesh = null
 
-    this.gui = new GUI()
+    // this.gui = new GUI()
 
     this.fillDataTexture()
     this.loadTextures()
     this.addObject()
-    this.addGUI()
+    // this.addGUI()
     this.addGesture()
     this.addEventListener()
     this.resize()
@@ -195,8 +195,7 @@ class Sketch {
   }
 
   addGUI() {
-    this.gui
-      .add(this.config, 'progress')
+    this.gui!.add(this.config, 'progress')
       .name('Animate')
       .min(0)
       .max(1)
@@ -204,7 +203,7 @@ class Sketch {
       .onChange((val: number) => {
         this.material!.uniforms.uProgress.value = val
       })
-    this.gui.add(this.config, 'animate').name('Animate')
+    this.gui!.add(this.config, 'animate').name('Animate')
   }
 
   revealAnimation() {
@@ -329,7 +328,8 @@ class Sketch {
     new Gesture(
       window,
       {
-        onDrag: ({ intentional, direction: [x], dragging }) => {
+        onDrag: ({ intentional, direction: [x], dragging, event }) => {
+          event.preventDefault()
           if (intentional && !this.animationRunning && dragging) {
             this.animationRunning = true
             this.animationDirection = x as any
@@ -354,6 +354,8 @@ class Sketch {
           enabled: window.matchMedia('(pointer: fine)').matches,
         },
         drag: {
+          preventDefault: true,
+          eventOptions: { passive: false },
           enabled: window.matchMedia('(pointer: coarse)').matches,
           axis: 'x',
         },
